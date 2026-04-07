@@ -1,0 +1,10 @@
+# .gitignore
+# Ignore the Jenkins data and Docker certificates volumes
+jenkins-data/
+jenkins-docker-certs/
+# Ignore the Jenkins container logs
+jenkins-logs/
+# Ignore the Jenkins container itself
+jenkins-blueocean/
+
+.vscode/
