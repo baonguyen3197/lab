@@ -8,3 +8,4 @@ jenkins-logs/
 jenkins-blueocean/
 
 .vscode/
+.gitignore
