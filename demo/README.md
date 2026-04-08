@@ -214,7 +214,7 @@ Finished: SUCCESS
 
 Note that no WARNING is in the log. And in workspace, the config.json is:
 
-![1775634978807](image/README/1775634978807.png)
+![1775635165439](image/README/1775635165439.png)
 
 With this config, it stores credentials in a GPG-encrypted file
 
