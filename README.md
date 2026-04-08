@@ -2,7 +2,7 @@
 
 ---
 
-**Setup Jenkins Network + Docker in Docker (This stage use for both steps below)**
+**Setup Jenkins Network + Docker in Docker (This stage use for both stages below)**
 
 ```
 # Create a Docker network for Jenkins and Docker-in-Docker
