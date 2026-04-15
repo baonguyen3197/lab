@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+  agent { label 'nhqb' }
 
   environment {
     DOCKERHUB_CREDENTIALS_ID = 'dockerhub-cred'
@@ -15,36 +15,24 @@ pipeline {
             passwordVariable: 'DOCKERHUB_PASSWORD'
           )
         ]) {
-          sh '''
-            set +x
-            printf '%s' "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker logout
-            set -x
-          '''
-        }
-      }
-    }
-
-    stage('Test withCredentials Ops') {
-      steps {
-        withCredentials([
-          usernamePassword(
-            credentialsId: env.DOCKERHUB_CREDENTIALS_ID,
-            usernameVariable: 'DOCKERHUB_USERNAME',
-            passwordVariable: 'DOCKERHUB_PASSWORD'
-          )
-        ]) {
-          sh '''
-            set +x
-            printf '%s' "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            echo "Hello from Jenkins after Docker Hub login!"
-            docker logout
-            sleep 120
-            set -x
-          '''
+          script {
+            if (isUnix()) {
+              sh '''
+                set -eu
+                printf '%s' "$DOCKERHUB_PASSWORD" | docker run --rm -i \
+                  -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" \
+                  -e DOCKER_HOST=unix:///var/run/docker.sock \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  docker:27-cli sh -lc 'set -eu; docker login -u "$DOCKERHUB_USERNAME" --password-stdin; cat /root/.docker/config.json; sleep 120; docker logout'
+              '''
+            } else {
+              bat '''
+                powershell.exe -NoProfile -NonInteractive -Command "$env:DOCKERHUB_PASSWORD | docker run --rm -i -e DOCKERHUB_USERNAME=$env:DOCKERHUB_USERNAME -e DOCKER_HOST=unix:///var/run/docker.sock -v /var/run/docker.sock:/var/run/docker.sock docker:27-cli sh -lc 'set -eu; docker login -u \"$DOCKERHUB_USERNAME\" --password-stdin; cat /root/.docker/config.json; sleep 120; docker logout'"
+              '''
+            }
+          }
         }
       }
     }
   }
-
 }

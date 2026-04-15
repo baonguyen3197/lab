@@ -8,3 +8,6 @@ jenkins-logs/
 jenkins-blueocean/
 
 .vscode/
+
+agent.jar
+workspace/
