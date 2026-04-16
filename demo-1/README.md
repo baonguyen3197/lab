@@ -143,7 +143,7 @@ Create pipeline job
 
 * **Jenkinsfile.copy**
 
-For demo purpose, copy the code in Jenkinsfile -> paste in Pipelinescript in Jenkins
+For demo purpose, copy the code in Jenkinsfile.copy -> paste in Pipelinescript in Jenkins
 
 Save -> Exec the build
 

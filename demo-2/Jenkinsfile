@@ -23,11 +23,12 @@ pipeline {
                   -e DOCKERHUB_USERNAME="$DOCKERHUB_USERNAME" \
                   -e DOCKER_HOST=unix:///var/run/docker.sock \
                   -v /var/run/docker.sock:/var/run/docker.sock \
-                  docker:27-cli sh -lc 'set -eu; docker login -u "$DOCKERHUB_USERNAME" --password-stdin; cat /root/.docker/config.json; sleep 120; docker logout'
+                  docker:27-cli sh -lc 'set -eu; docker login -u "$DOCKERHUB_USERNAME" --password-stdin; cat /root/.docker/config.json; echo; sleep 120; docker logout'
               '''
             } else {
               bat '''
-                powershell.exe -NoProfile -NonInteractive -Command "$env:DOCKERHUB_PASSWORD | docker run --rm -i -e DOCKERHUB_USERNAME=$env:DOCKERHUB_USERNAME -e DOCKER_HOST=unix:///var/run/docker.sock -v /var/run/docker.sock:/var/run/docker.sock docker:27-cli sh -lc 'set -eu; docker login -u \"$DOCKERHUB_USERNAME\" --password-stdin; cat /root/.docker/config.json; sleep 120; docker logout'"
+                @echo off
+                powershell.exe -NoProfile -NonInteractive -Command "$env:DOCKERHUB_PASSWORD | docker run --rm -i -e DOCKERHUB_USERNAME=$env:DOCKERHUB_USERNAME -e DOCKER_HOST=unix:///var/run/docker.sock -v /var/run/docker.sock:/var/run/docker.sock docker:27-cli sh -lc 'set -eu; docker login -u \"$DOCKERHUB_USERNAME\" --password-stdin; cat /root/.docker/config.json; echo; docker logout'"
               '''
             }
           }
