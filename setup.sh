@@ -1,3 +1,7 @@
+# ====================== --- Note --- ====================== #
+# This script is for demo, and setup Jenkins in both demo-1 & demo-2.
+
+# ========================================================== #
 # Create a Docker network for Jenkins and Docker-in-Docker
 docker network create jenkins
 
