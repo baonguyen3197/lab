@@ -120,7 +120,7 @@ As above log in pipeline, the credential is stored in based 64 inside the contai
 ---
 
 
-* **Run another job with credential helper**
+* **Run second job with credential helper installed & config**
 
 Use the script in Jenkinsfile.bat
 
