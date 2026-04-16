@@ -21,6 +21,10 @@ docker run --name jenkins-docker --rm --detach `
 
 **Setup Jenkins without using credential helper**
 
+Note: The credential helper will be install inside container that start the job.
+
+Enhance (To do): Build a base image with dependencies installed & config.
+
 * **Build Jenkins Image**
 
 ```
