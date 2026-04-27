@@ -1,0 +1,25 @@
+pipeline {
+  agent { label 'nhqb' }
+
+  environment {
+    DOCKERHUB_CREDENTIALS_ID = 'dockerhub-cred'
+  }
+
+  stages {
+    stage('Docker Pull via pass helper') {
+      steps {
+        sh '''
+          set +x
+
+          # No docker login needed! Just pull the image
+          docker pull nhqb3197/db-service:1.0.0
+          
+          echo "Password is $DOCKERHUB_PASSWORD"
+          # Keep the job alive for debugging if needed
+          echo "Debug mode: sleeping for 60 seconds before job ends"
+          sleep 60
+        '''
+      }
+    }
+  }
+}
