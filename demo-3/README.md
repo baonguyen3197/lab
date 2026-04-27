@@ -95,3 +95,6 @@ Debug mode: sleeping for 60 seconds before job ends
 [Pipeline] End of Pipeline
 Finished: SUCCESS
 ```
+
+**Notes:**
+*With this config, if change the credential in Jenkins, it will not affect the job, still can run without logout & login back again.*
