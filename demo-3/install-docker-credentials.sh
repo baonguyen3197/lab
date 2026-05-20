@@ -287,7 +287,7 @@ main() {
     
     init_pass "$GPG_KEY_ID"
     echo ""
-    log_warning "IMPORTANT: If you had previous Docker credentials, run 'docker logout' then 'docker login' in this shell AFTER sourcing the env (source setup-docker-env.sh)."
+    log_warning "IMPORTANT: If you had previous Docker credentials, run 'docker logout' then 'docker login' in this shell after re-running the installer."
     echo ""
     
     configure_docker
