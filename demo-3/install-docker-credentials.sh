@@ -9,10 +9,10 @@
 set -e
 
 # Default persistent credentials directory
-PERSISTENT_CREDS_DIR="${1:-.}"
-export GNUPGHOME="${PERSISTENT_CREDS_DIR}/.gnupg"
-PASS_STORE_DIR="${PERSISTENT_CREDS_DIR}/.password-store"
-DOCKER_CONFIG_DIR="${PERSISTENT_CREDS_DIR}/.docker"
+CREDS_DIR="${1:-.}"
+export GNUPGHOME="${CREDS_DIR}/.gnupg"
+PASS_STORE_DIR="${CREDS_DIR}/.password-store"
+DOCKER_CONFIG_DIR="${CREDS_DIR}/.docker"
 
 # Colors for output
 RED='\033[0;31m'
@@ -95,7 +95,7 @@ generate_gpg_key() {
     log_info "Creating GPG key batch configuration..."
 
     # Generate the key and capture any output for debugging
-    GPG_OUTPUT=$(gpg --batch --full-generate-key --quiet <<EOF 2>&1
+    GPG_OUTPUT=$(gpg --batch --generate-key <<EOF 2>&1
 Key-Type: eddsa
 Key-Curve: ed25519
 Subkey-Type: ecdh
@@ -214,7 +214,7 @@ show_keys() {
     echo -e "${BLUE}========================================${NC}"
     echo "GNUPGHOME=$GNUPGHOME"
     echo "PASSWORD_STORE_DIR=$PASS_STORE_DIR"
-    echo "PERSISTENT_CREDS_DIR=$PERSISTENT_CREDS_DIR"
+    echo "CREDS_DIR=$CREDS_DIR"
     
     echo ""
     echo -e "${BLUE}========================================${NC}"
@@ -263,7 +263,7 @@ main() {
     fi
     
     # Display usage and configuration
-    log_info "Persistent credentials directory: $PERSISTENT_CREDS_DIR"
+    log_info "Persistent credentials directory: $CREDS_DIR"
     log_info "GNUPGHOME: $GNUPGHOME"
     log_info "PASSWORD_STORE_DIR: $PASS_STORE_DIR"
     log_info "DOCKER_CONFIG_DIR: $DOCKER_CONFIG_DIR"
