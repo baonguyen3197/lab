@@ -49,7 +49,8 @@ main() {
     echo "  1. GPG keys at: $GNUPGHOME"
     echo "  2. Pass store at: $PASS_STORE_DIR"
     echo "  3. Docker credentials stored via docker-credential-pass"
-    echo "  4. Docker config file: ~/.docker/config.json (optional)"
+    echo "  4. docker-credential-pass package (optional)"
+    echo "  5. Docker config file: ~/.docker/config.json (optional)"
     echo ""
     
     # Confirm before proceeding
@@ -133,9 +134,28 @@ main() {
     fi
     echo ""
     
-    # Step 4: Docker cleanup (optional)
+    # Step 4: Remove docker-credential-pass package
     echo -e "${BLUE}========================================${NC}"
-    echo -e "${BLUE}  4. Docker Configuration${NC}"
+    echo -e "${BLUE}  4. Remove docker-credential-pass${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    
+    read -p "Remove docker-credential-pass package? (yes/no): " remove_helper
+    if [[ "$remove_helper" == "yes" ]]; then
+        if command -v docker-credential-pass >/dev/null 2>&1; then
+            log_info "Removing docker-credential-pass package..."
+            sudo apt remove -y golang-docker-credential-helpers 2>/dev/null || log_warning "Failed to remove docker-credential-helpers package"
+            log_success "docker-credential-pass package removed"
+        else
+            log_info "docker-credential-pass not found"
+        fi
+    else
+        log_info "Skipping docker-credential-pass removal"
+    fi
+    echo ""
+    
+    # Step 5: Docker cleanup (optional)
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}  5. Docker Configuration${NC}"
     echo -e "${BLUE}========================================${NC}"
     
     read -p "Remove Docker config (~/.docker/config.json)? (yes/no): " docker_cleanup
@@ -178,7 +198,8 @@ if [[ " $* " == *" --help "* ]] || [[ " $* " == *" -h "* ]]; then
     echo "  2. Delete all GPG secret and public keys"
     echo "  3. Remove pass store and credential entries"
     echo "  4. Remove GNUPGHOME directory"
-    echo "  5. Remove Docker config (optional)"
+    echo "  5. Remove docker-credential-pass package (optional)"
+    echo "  6. Remove Docker config (optional)"
     echo ""
     echo "Example:"
     echo "  bash $0 /home/nhqb"
