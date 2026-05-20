@@ -10,8 +10,8 @@ set -e
 
 # Set default values for credentials directory and GPG identity
 CREDS_DIR="."
-GPG_REAL_NAME="nhqb3197"
-GPG_EMAIL="baonguyen3197@gmail.com"
+GPG_REAL_NAME="John Doe"     # Default GPG key name - Please change to your actual name
+GPG_EMAIL="john@example.com" # Default GPG key email - Please change to your actual email
 
 #===================================================================================
 # PARSE COMMAND LINE ARGUMENTS
@@ -51,8 +51,8 @@ Docker Credentials Helper Installation Script
 Usage: bash install-docker-credentials.sh [OPTIONS]
 
 Options:
-  -u, --username USER   GPG key username/real name
-  -e, --email EMAIL     GPG key email address
+  -u, --username USER   GPG key username/real name (default: "John Doe") - Please change to your actual name
+  -e, --email EMAIL     GPG key email address (default: "john@example.com") - Please change to your actual email
   -d, --dir DIR         Credentials directory (default: current directory)
   -h, --help            Show this help message
 
