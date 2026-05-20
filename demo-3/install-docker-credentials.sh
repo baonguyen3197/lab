@@ -8,10 +8,61 @@
 
 set -e
 
-# Default credentials directory and GPG identity values
-CREDS_DIR="${1:-.}"
-GPG_REAL_NAME="${2:-nhqb3197}"
-GPG_EMAIL="${3:-baonguyen3197@gmail.com}"
+# Set default values for credentials directory and GPG identity
+CREDS_DIR="."
+GPG_REAL_NAME="nhqb3197"
+GPG_EMAIL="baonguyen3197@gmail.com"
+
+#===================================================================================
+# PARSE COMMAND LINE ARGUMENTS
+#===================================================================================
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -u|--username)
+                GPG_REAL_NAME="$2"
+                shift 2
+                ;;
+            -e|--email)
+                GPG_EMAIL="$2"
+                shift 2
+                ;;
+            -d|--dir)
+                CREDS_DIR="$2"
+                shift 2
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                log_error "Unknown option: $1"
+                show_help
+                exit 1
+                ;;
+        esac
+    done
+}
+
+show_help() {
+    cat << 'EOF'
+Docker Credentials Helper Installation Script
+
+Usage: bash install-docker-credentials.sh [OPTIONS]
+
+Options:
+  -u, --username USER   GPG key username/real name
+  -e, --email EMAIL     GPG key email address
+  -d, --dir DIR         Credentials directory (default: current directory)
+  -h, --help            Show this help message
+
+Examples:
+  bash install-docker-credentials.sh
+  bash install-docker-credentials.sh -u john -e john@example.com
+  bash install-docker-credentials.sh -u "John Doe" -e john@example.com -d /home/john
+EOF
+}
+
 export GNUPGHOME="${CREDS_DIR}/.gnupg"
 PASS_STORE_DIR="${CREDS_DIR}/.password-store"
 DOCKER_CONFIG_DIR="${CREDS_DIR}/.docker"
@@ -315,9 +366,11 @@ main() {
     echo "4. Verify by checking Docker config and credential helper status using the check-docker-keys.sh script"
     echo ""
     echo -e "${YELLOW}DOCKER LOGIN COMMAND:${NC}"
-    echo "GNUPGHOME=$GNUPGHOME PASSWORD_STORE_DIR=$PASS_STORE_DIR docker login registry.example.com"
+    echo "GNUPGHOME=$GNUPGHOME PASSWORD_STORE_DIR=$PASS_STORE_DIR docker login"
     echo ""
 }
 
-# Run main function
-main "$@"
+# Parse arguments and run main function
+parse_arguments "$@"
+main
+
