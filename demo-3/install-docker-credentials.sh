@@ -8,8 +8,10 @@
 
 set -e
 
-# Default persistent credentials directory
+# Default credentials directory and GPG identity values
 CREDS_DIR="${1:-.}"
+GPG_REAL_NAME="${2:-nhqb3197}"
+GPG_EMAIL="${3:-baonguyen3197@gmail.com}"
 export GNUPGHOME="${CREDS_DIR}/.gnupg"
 PASS_STORE_DIR="${CREDS_DIR}/.password-store"
 DOCKER_CONFIG_DIR="${CREDS_DIR}/.docker"
@@ -77,6 +79,7 @@ install_dependencies() {
 #===================================================================================
 generate_gpg_key() {
     log_info "Generating GPG key in: $GNUPGHOME"
+    log_info "GPG identity: $GPG_REAL_NAME <$GPG_EMAIL>"
     
     # Create GPG home directory if it doesn't exist
     mkdir -p "$GNUPGHOME"
@@ -100,8 +103,8 @@ Key-Type: eddsa
 Key-Curve: ed25519
 Subkey-Type: ecdh
 Subkey-Curve: cv25519
-Name-Real: nhqb3197
-Name-Email: baonguyen3197@gmail.com
+Name-Real: $GPG_REAL_NAME
+Name-Email: $GPG_EMAIL
 Expire-Date: 0
 %no-protection
 %commit
@@ -215,6 +218,8 @@ show_keys() {
     echo "GNUPGHOME=$GNUPGHOME"
     echo "PASSWORD_STORE_DIR=$PASS_STORE_DIR"
     echo "CREDS_DIR=$CREDS_DIR"
+    echo "GPG_REAL_NAME=$GPG_REAL_NAME"
+    echo "GPG_EMAIL=$GPG_EMAIL"
     
     echo ""
     echo -e "${BLUE}========================================${NC}"
@@ -305,9 +310,9 @@ main() {
     echo ""
     echo -e "${YELLOW}NEXT STEPS:${NC}"
     echo "1. Run: docker login registry.example.com"
-    echo "2. Verify: docker-credential-pass list"3
+    echo "2. Verify: docker-credential-pass list"
     echo "3. Logout and login again to apply new credentials helper configuration"
-    echo "4. Verify by checking Docker config and credential helper status"
+    echo "4. Verify by checking Docker config and credential helper status using the check-docker-keys.sh script"
     echo ""
     echo -e "${YELLOW}DOCKER LOGIN COMMAND:${NC}"
     echo "GNUPGHOME=$GNUPGHOME PASSWORD_STORE_DIR=$PASS_STORE_DIR docker login registry.example.com"
