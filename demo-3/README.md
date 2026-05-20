@@ -1,6 +1,6 @@
 # **Install docker-credential-helpers**
 
-## Install dependencies
+## Manual Setup
 
 ```
 # Java
@@ -10,7 +10,7 @@ sudo apt install openjdk-21-jre-headless
 sudo apt install golang-docker-credential-helpers
 
 # Verify
-java
+java -version
 docker-credential-pass list
 ```
 
@@ -43,7 +43,7 @@ pass init D85A04***76DAE
 
 - After setup pass, must **logout** then **login** again to apply new changes.
 - `docker logout`
-- `docker login 	# Follow docker step to login via terminal.`
+- `docker login -u ${USERNAME} 	# Follow docker step to login via terminal.`
 
 ## Verify
 
@@ -64,7 +64,6 @@ cat .docker/config.json
 docker-credential-pass list
 {"https://index.docker.io/v1/":"{$DOCKERHUB_USERNAME}","https://index.docker.io/v1/access-token":"{$DOCKERHUB_USERNAME}","https://index.docker.io/v1/refresh-token":"{$DOCKERHUB_USERNAME}"}
 ```
-
 
 After completing this setup, you can directly use `docker push` and `docker pull` without needing to wrap commands in `withCredentials`.
 

@@ -11,3 +11,5 @@ jenkins-blueocean/
 
 agent.jar
 workspace/
+
+.github/*

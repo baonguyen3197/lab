@@ -3,10 +3,16 @@
 #===================================================================================
 # Docker Credentials Helper Installation & Configuration Script
 # This script automates the installation and configuration of docker-credential-pass
-# with GPG key generation for secure Docker credential storage
+# with GPG key generation for secure Docker credential storage in a persistent directory
 #===================================================================================
 
 set -e
+
+# Default persistent credentials directory
+PERSISTENT_CREDS_DIR="${1:-.}"
+export GNUPGHOME="${PERSISTENT_CREDS_DIR}/.gnupg"
+PASS_STORE_DIR="${PERSISTENT_CREDS_DIR}/.password-store"
+DOCKER_CONFIG_DIR="${PERSISTENT_CREDS_DIR}/.docker"
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,19 +23,19 @@ NC='\033[0m' # No Color
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1" >&2
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "${GREEN}[SUCCESS]${NC} $1" >&2
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo -e "${YELLOW}[WARNING]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 #===================================================================================
@@ -56,7 +62,11 @@ install_dependencies() {
     # Verify installations
     log_info "Verifying installations..."
     java -version 2>&1 | head -1
-    docker-credential-pass --version 2>/dev/null || log_warning "docker-credential-pass verification skipped"
+    if command -v docker-credential-pass >/dev/null 2>&1; then
+        log_info "docker-credential-pass found: $(command -v docker-credential-pass)"
+    else
+        log_warning "docker-credential-pass not found in PATH"
+    fi
     pass --version || log_warning "pass verification skipped"
     
     log_success "All dependencies installed successfully"
@@ -66,31 +76,47 @@ install_dependencies() {
 # 2. GENERATE GPG KEY
 #===================================================================================
 generate_gpg_key() {
-    log_info "Generating GPG key..."
+    log_info "Generating GPG key in: $GNUPGHOME"
+    
+    # Create GPG home directory if it doesn't exist
+    mkdir -p "$GNUPGHOME"
+    chmod 700 "$GNUPGHOME"
     
     # Check if GPG key already exists
     EXISTING_KEYS=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep -c "sec" || true)
     
     if [ "$EXISTING_KEYS" -gt 0 ]; then
-        log_warning "GPG keys already exist. Using existing key."
+        log_warning "GPG keys already exist at $GNUPGHOME. Using existing key."
         return
     fi
     
     # Generate GPG key with batch mode
-    # Note: This creates a key with default settings
+    # Creates EdDSA (ed25519) key with ECDH (cv25519) encryption subkey
     log_info "Creating GPG key batch configuration..."
-    
-    # Generate a new GPG key
-    gpg --batch --generate-key <<EOF
-Key-Type: default
-Key-Length: 4096
-Name-Real: Docker Credentials
-Name-Email: docker-credentials@local
-Passphrase:
+
+    # Generate the key and capture any output for debugging
+    GPG_OUTPUT=$(gpg --batch --full-generate-key --quiet <<EOF 2>&1
+Key-Type: eddsa
+Key-Curve: ed25519
+Subkey-Type: ecdh
+Subkey-Curve: cv25519
+Name-Real: nhqb3197
+Name-Email: baonguyen3197@gmail.com
+Expire-Date: 0
 %no-protection
+%commit
 EOF
+    )
     
-    log_success "GPG key generated successfully"
+    # Verify the key was actually created
+    VERIFY_COUNT=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep -c "sec" || true)
+    if [ "$VERIFY_COUNT" -eq 0 ]; then
+        log_error "Failed to generate GPG key. GPG output:"
+        echo "$GPG_OUTPUT" >&2
+        exit 1
+    fi
+    
+    log_success "GPG key generated successfully in $GNUPGHOME"
 }
 
 #===================================================================================
@@ -99,15 +125,25 @@ EOF
 get_gpg_key_id() {
     log_info "Retrieving GPG key ID..."
     
-    # Get the key ID (first key, long format)
+    # Get the key ID from the sec line format: sec   ed25519/C1B3A7024D9463D6 2026-05-19 [SC]
+    # We want the short key ID (C1B3A7024D9463D6) which is after the slash in field 2
     GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | \
-                 grep "sec" | head -1 | awk '{print $2}' | cut -d'/' -f2)
+                 grep "^sec" | head -1 | awk '{print $2}' | cut -d'/' -f2)
     
     if [ -z "$GPG_KEY_ID" ]; then
         log_error "Failed to retrieve GPG key ID"
+        log_error "Available keys:"
+        gpg --list-secret-keys --keyid-format LONG 2>/dev/null >&2
         exit 1
     fi
     
+    # Validate key ID format (should be 16 hex characters for long format)
+    if ! echo "$GPG_KEY_ID" | grep -qE '^[A-F0-9]{16}$'; then
+        log_error "Invalid GPG key ID format: $GPG_KEY_ID"
+        exit 1
+    fi
+    
+    log_info "Extracted key ID: $GPG_KEY_ID"
     echo "$GPG_KEY_ID"
 }
 
@@ -117,17 +153,25 @@ get_gpg_key_id() {
 init_pass() {
     local GPG_KEY_ID=$1
     log_info "Initializing pass with GPG key ID: $GPG_KEY_ID..."
+    log_info "Pass store directory: $PASS_STORE_DIR"
+    
+    # Set PASSWORD_STORE_DIR environment variable
+    export PASSWORD_STORE_DIR="$PASS_STORE_DIR"
     
     # Check if pass is already initialized
-    if [ -d "$HOME/.password-store" ]; then
-        log_warning "Pass already initialized. Skipping..."
+    if [ -d "$PASS_STORE_DIR" ]; then
+        log_warning "Pass already initialized at $PASS_STORE_DIR. Skipping..."
         return
     fi
+    
+    # Create pass store directory
+    mkdir -p "$PASS_STORE_DIR"
+    chmod 700 "$PASS_STORE_DIR"
     
     # Initialize pass with the GPG key
     pass init "$GPG_KEY_ID" 2>/dev/null || true
     
-    log_success "Pass initialized successfully"
+    log_success "Pass initialized successfully at $PASS_STORE_DIR"
 }
 
 #===================================================================================
@@ -135,19 +179,27 @@ init_pass() {
 #===================================================================================
 configure_docker() {
     log_info "Configuring Docker to use credential helper..."
-    
-    # Create Docker config directory if it doesn't exist
+    log_info "Docker config directory: $HOME/.docker"
+
+    # Create Docker config directory in the user's home directory
     mkdir -p "$HOME/.docker"
-    
-    # Create Docker config with credential helper
+
+    # If a previous symlink exists, remove it so Docker gets a normal file again
+    if [ -L "$HOME/.docker/config.json" ]; then
+        log_info "Removing existing symlink: $HOME/.docker/config.json"
+        rm -f "$HOME/.docker/config.json"
+    fi
+
+    # Create Docker config with credential helper using pass
     cat > "$HOME/.docker/config.json" <<EOF
 {
     "auths": {},
     "credsStore": "pass"
 }
 EOF
-    
+
     log_success "Docker configured with credential helper (pass)"
+    log_info "Config location: $HOME/.docker/config.json"
 }
 
 #===================================================================================
@@ -155,6 +207,14 @@ EOF
 #===================================================================================
 show_keys() {
     log_info "Displaying generated keys and configuration..."
+    
+    echo ""
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}  ENVIRONMENT VARIABLES${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo "GNUPGHOME=$GNUPGHOME"
+    echo "PASSWORD_STORE_DIR=$PASS_STORE_DIR"
+    echo "PERSISTENT_CREDS_DIR=$PERSISTENT_CREDS_DIR"
     
     echo ""
     echo -e "${BLUE}========================================${NC}"
@@ -166,8 +226,8 @@ show_keys() {
     echo -e "${BLUE}========================================${NC}"
     echo -e "${BLUE}  PASS CONFIGURATION${NC}"
     echo -e "${BLUE}========================================${NC}"
-    if [ -d "$HOME/.password-store" ]; then
-        pass ls || log_warning "Pass store appears empty"
+    if [ -d "$PASS_STORE_DIR" ]; then
+        PASSWORD_STORE_DIR="$PASS_STORE_DIR" pass ls || log_warning "Pass store appears empty"
     else
         log_warning "Pass store not initialized"
     fi
@@ -176,13 +236,13 @@ show_keys() {
     echo -e "${BLUE}========================================${NC}"
     echo -e "${BLUE}  DOCKER CONFIG${NC}"
     echo -e "${BLUE}========================================${NC}"
-    cat "$HOME/.docker/config.json" | head -20
+    cat "$HOME/.docker/config.json" 2>/dev/null || echo "Config file not found"
     
     echo ""
     echo -e "${BLUE}========================================${NC}"
     echo -e "${BLUE}  DOCKER CREDENTIALS HELPER STATUS${NC}"
     echo -e "${BLUE}========================================${NC}"
-    docker-credential-pass list 2>/dev/null || echo "No credentials stored yet"
+    GNUPGHOME="$GNUPGHOME" PASSWORD_STORE_DIR="$PASS_STORE_DIR" docker-credential-pass list 2>/dev/null || echo "No credentials stored yet"
     
     echo ""
 }
@@ -202,6 +262,13 @@ main() {
         exit 1
     fi
     
+    # Display usage and configuration
+    log_info "Persistent credentials directory: $PERSISTENT_CREDS_DIR"
+    log_info "GNUPGHOME: $GNUPGHOME"
+    log_info "PASSWORD_STORE_DIR: $PASS_STORE_DIR"
+    log_info "DOCKER_CONFIG_DIR: $DOCKER_CONFIG_DIR"
+    echo ""
+    
     # Run installation steps
     install_dependencies
     echo ""
@@ -215,6 +282,8 @@ main() {
     
     init_pass "$GPG_KEY_ID"
     echo ""
+    log_warning "IMPORTANT: If you had previous Docker credentials, run 'docker logout' then 'docker login' in this shell AFTER sourcing the env (source setup-docker-env.sh)."
+    echo ""
     
     configure_docker
     echo ""
@@ -225,11 +294,23 @@ main() {
     echo -e "${GREEN}║  Installation completed successfully!                      ║${NC}"
     echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
+    echo -e "${YELLOW}REQUIRED ENVIRONMENT VARIABLES FOR DOCKER OPERATIONS:${NC}"
+    echo "export GNUPGHOME=$GNUPGHOME"
+    echo "export PASSWORD_STORE_DIR=$PASS_STORE_DIR"
+    echo ""
+    echo -e "${YELLOW}ADD TO YOUR JENKINS AGENT CONFIGURATION:${NC}"
+    echo "1. Set environment variables in Jenkins agent startup script:"
+    echo "   export GNUPGHOME=$GNUPGHOME"
+    echo "   export PASSWORD_STORE_DIR=$PASS_STORE_DIR"
+    echo ""
     echo -e "${YELLOW}NEXT STEPS:${NC}"
-    echo "1. Logout and login again to apply changes"
-    echo "2. Run: docker login"
-    echo "3. Verify: docker-credential-pass list"
-    echo "4. Use: docker push/pull without credential wrapping in Jenkins"
+    echo "1. Run: docker login registry.example.com"
+    echo "2. Verify: docker-credential-pass list"3
+    echo "3. Logout and login again to apply new credentials helper configuration"
+    echo "4. Verify by checking Docker config and credential helper status"
+    echo ""
+    echo -e "${YELLOW}DOCKER LOGIN COMMAND:${NC}"
+    echo "GNUPGHOME=$GNUPGHOME PASSWORD_STORE_DIR=$PASS_STORE_DIR docker login registry.example.com"
     echo ""
 }
 

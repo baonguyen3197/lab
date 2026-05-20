@@ -31,6 +31,8 @@ log_error() {
 }
 
 main() {
+    local helper_bin=""
+
     echo ""
     echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║  Docker Credentials Helper - Keys & Status                 ║${NC}"
@@ -82,8 +84,9 @@ main() {
     echo -e "${BLUE}========================================${NC}"
     echo -e "${BLUE}  5. DOCKER CREDENTIALS STORED${NC}"
     echo -e "${BLUE}========================================${NC}"
-    if command -v docker-credential-pass &> /dev/null; then
-        CREDS=$(docker-credential-pass list 2>/dev/null || echo "")
+    helper_bin=$(command -v docker-credential-pass 2>/dev/null || true)
+    if [ -n "$helper_bin" ] && [ -x "$helper_bin" ]; then
+        CREDS=$($helper_bin list 2>/dev/null || echo "")
         if [ -z "$CREDS" ]; then
             log_warning "No Docker credentials stored yet"
             echo "Run 'docker login' to add credentials"
@@ -91,7 +94,7 @@ main() {
             echo "$CREDS" | jq . 2>/dev/null || echo "$CREDS"
         fi
     else
-        log_error "docker-credential-pass not found"
+        log_error "docker-credential-pass not found in PATH"
     fi
     
     # 6. Verify Docker integration
@@ -99,9 +102,12 @@ main() {
     echo -e "${BLUE}========================================${NC}"
     echo -e "${BLUE}  6. CREDENTIAL HELPER STATUS${NC}"
     echo -e "${BLUE}========================================${NC}"
-    docker-credential-pass --version 2>/dev/null && \
-        log_success "docker-credential-pass is available" || \
+    if [ -n "$helper_bin" ] && [ -x "$helper_bin" ]; then
+        log_success "docker-credential-pass is available"
+        log_info "Helper path: $helper_bin"
+    else
         log_error "docker-credential-pass not found"
+    fi
     
     echo ""
     echo -e "${GREEN}════════════════════════════════════════${NC}"
