@@ -189,5 +189,5 @@ It completely bypasses credential exposure during the job runtime.
 
 > ***Note:***
 >
-> * When using docker-credentials-helper does not required to logout, as the credential is kept in pass varialbe in .docker/config.json
-> * The *docker logout* & *docker login* only use once when update the key value or add new key
+> - With Docker Credential Helper, repeated `docker login` and `docker logout` are not required, as credentials are securely stored using `pass` via `.docker/config.json`.
+> - `docker login` is only needed when adding or updating credentials, while `docker logout` is used to remove them.
