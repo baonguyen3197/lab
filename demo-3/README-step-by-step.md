@@ -88,7 +88,7 @@ chmod +x install-docker-credentials.sh
 
 ![1779272415523](image/README-step-by-step/1779272415523.png)
 
-![1779272620745](image/README-step-by-step/1779272620745.png)
+![1779345418355](image/README-step-by-step/1779345418355.png)
 
 This script automatically install + config the gpg key
 
