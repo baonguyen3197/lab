@@ -4,7 +4,9 @@ This guideline use for setting up docker-credentials-helper by using script
 
 # Pre-check
 
-***Note:** **This setup is run on a fresh new environment. You can skip this step if you have already run docker login in the agent.*
+> ***Note:***
+>
+> *This setup is run on a fresh new environment. You can skip this step if you have already run docker login in the agent.*
 
 First, check that the environment has no credentials stored by executing the script *check-docker-keys.sh*
 
@@ -47,7 +49,9 @@ Or use the *check-docker-credentials.sh* to check for the keys
 
 # Installation + Configuration
 
-***Note: Before executing the install-docker-credentials.sh, please read below arguments carefully.***
+> ***Note:** *
+>
+> *Before executing the install-docker-credentials.sh, please read below arguments carefully.*
 
 ## Script arguments
 
@@ -182,7 +186,7 @@ From now on, the Jenkins pipeline now can run without adding the *withCredentail
 
 It completely bypass the credentials during the jon runtime.
 
-***Note:***
-
-- When using docker-credentials-helper does not required to logout, as the credential is kept in pass varialbe in .docker/config.json
-- The *docker logout* & *docker login* only use once when update the key value or add new key
+> ***Note:***
+>
+> * When using docker-credentials-helper does not required to logout, as the credential is kept in pass varialbe in .docker/config.json
+> * The *docker logout* & *docker login* only use once when update the key value or add new key
