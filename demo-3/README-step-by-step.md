@@ -164,7 +164,7 @@ This approach is insecure and should use a credential helper, as recommended in 
 
 ## Agent nhqb-01
 
-This agent has already installed & configured by excuting the *install-docker-credentials.sh*
+This agent has already installed & configured by executing the *install-docker-credentials.sh*
 
 Verify by using the *check-docker-keys.sh*
 
