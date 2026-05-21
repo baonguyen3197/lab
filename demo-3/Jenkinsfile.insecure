@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'nhqb-01' }
+  agent { label 'nhqb' }
 
   environment {
     DOCKERHUB_CREDENTIALS_ID = 'dockerhub-cred'
@@ -18,8 +18,12 @@ pipeline {
           sh '''
             set +x
             printf '%s' "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            # docker logout
+            docker pull nhqb3197/store-service:1.0.0
+            echo ${DOCKERHUB_PASSWORD}; sleep 60
             set -x
+            docker logout
+            echo "Logout complete"
+            echo "Test complete"
           '''
         }
       }

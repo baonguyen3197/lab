@@ -122,16 +122,66 @@ After above step, let's login to Dockerhub again to apply new change
 
 You can see that the credentials is now encrypted
 
-# Jenkins Agent usage
+# Demo
 
-From now on, the Jenkins pipeline now can run without adding the *withCredentails* in it, as it stores the credentials in runtime environment.
+In this demo, I start 2 agents, the first one which haven't been configured *docker-credentials-helper*.
+The second one is installed + configured.
+
+Both agents will pull private image from dockerhub that required authentication.
+
+Prepare 2 agent nodes:
+
+* nhqb - 192.168.233.134
+* nhqb-01 - 192.168.233.128
+
+## Agent nhqb
+
+On this agent, execute the *check-docker-keys.sh* to verify the config
+![1779338412428](image/README-step-by-step/1779338412428.png)
+
+Then, start the job using the code in *Jenkinsfile.insecure*.
 
 ### Verify
 
 ```
-# Jenkinsfile
+# Jenkinsfile.insecure
 # Note
 # This pipeline for demo purpose as echo will print out the credentials in the pipeline runtime log
 
+```
+
+![1779337480658](image/README-step-by-step/1779337480658.png)
+
+As shown in the UI, Jenkins masks the credentials; however, in the backend job log files, the password is still persisted in plain text
+
+![1779338615813](image/README-step-by-step/1779338615813.png)
+
+This approach is insecure and should use a credential helper, as recommended in the warning message
+
+## Agent nhqb-01
+
+This agent has already installed & configured by excuting the *install-docker-credentials.sh*
+
+Verify by using the *check-docker-keys.sh*
+
+![1779342111694](image/README-step-by-step/1779342111694.png)
+
+From now on, the Jenkins pipeline now can run without adding the *withCredentails* in it, as it stores the credentials in runtime environment.
 
 ```
+# This agent will running using the Jenkinsfile groovy script
+# This script has removed the withCredential that stored the DockerHub key in environment variables
+# This script also pull the private image from Dockerhub that required authentication
+# Even though the pipeline set the key in the environment, but the job did not use withCredential, so that the key never included during the job runtime
+# The result is as below
+```
+
+![1779342788038](image/README-step-by-step/1779342788038.png)
+
+![1779342778026](image/README-step-by-step/1779342778026.png)
+
+It completely bypass the credentials during the jon runtime.
+***Note:***
+
+- When using docker-credentials-helper does not required to logout, as the credential is kept in pass varialbe in .docker/config.json
+- The *docker logout* & *docker login* only use once when update the key value or add new key
