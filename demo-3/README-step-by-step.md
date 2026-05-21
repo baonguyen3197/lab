@@ -181,6 +181,7 @@ From now on, the Jenkins pipeline now can run without adding the *withCredentail
 ![1779342778026](image/README-step-by-step/1779342778026.png)
 
 It completely bypass the credentials during the jon runtime.
+
 ***Note:***
 
 - When using docker-credentials-helper does not required to logout, as the credential is kept in pass varialbe in .docker/config.json
