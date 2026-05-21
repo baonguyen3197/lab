@@ -173,11 +173,12 @@ Verify by using the *check-docker-keys.sh*
 From now on, the Jenkins pipeline can run without requiring `withCredentials`, as the credentials are securely stored using the `credStore: pass` credential helper.
 
 ```
-# This agent will running using the Jenkinsfile groovy script
-# This script has removed the withCredential that stored the DockerHub key in environment variables
-# This script also pull the private image from Dockerhub that required authentication
-# Even though the pipeline set the key in the environment, but the job did not use withCredential, so that the key never included during the job runtime
-# The result is as below
+# This agent runs using the Jenkinsfile Groovy script.
+# The script has removed the `withCredentials` block that previously injected the Docker Hub credentials into environment variables.
+# The pipeline is still able to pull a private image from Docker Hub, which requires authentication.
+# Although the pipeline defines the credentials in the environment configuration, the job itself does not use `withCredentials`,
+# meaning the credentials are never exposed during the job runtime.
+# The result is shown below.
 ```
 
 ![1779342788038](image/README-step-by-step/1779342788038.png)
