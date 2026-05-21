@@ -170,7 +170,7 @@ Verify by using the *check-docker-keys.sh*
 
 ![1779342111694](image/README-step-by-step/1779342111694.png)
 
-From now on, the Jenkins pipeline now can run without adding the *withCredentails* in it, as it stores the credentials in runtime environment.
+From now on, the Jenkins pipeline can run without requiring `withCredentials`, as the credentials are securely stored using the `credStore: pass` credential helper.
 
 ```
 # This agent will running using the Jenkinsfile groovy script
