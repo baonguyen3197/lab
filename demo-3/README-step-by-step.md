@@ -185,7 +185,7 @@ From now on, the Jenkins pipeline can run without requiring `withCredentials`, a
 
 ![1779342778026](image/README-step-by-step/1779342778026.png)
 
-It completely bypass the credentials during the jon runtime.
+It completely bypasses credential exposure during the job runtime.
 
 > ***Note:***
 >
