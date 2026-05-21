@@ -25,7 +25,7 @@ gpg --full-generate-key
 # Get key id
 gpg --list-secret-keys --keyid-format LONG
 
-sec   ed25519/B9A13E54DC976DAE 2026-04-27 [SC]
+sec   ed25519/B9***AE 2026-04-27 [SC]
       D85A04***76DAE # this is key id
 ```
 
