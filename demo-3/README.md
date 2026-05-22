@@ -94,3 +94,64 @@ Debug mode: sleeping for 60 seconds before job ends
 [Pipeline] End of Pipeline
 Finished: SUCCESS
 ```
+
+---
+
+# Usage of Automation script
+
+There are 3 scripts for this setup:
+
+* `install-docker-credentials.sh`		-> Install + config gpg key + init pass
+* `check-docker-keys.sh`			-> Verify dependencies + key configured
+* `cleanup-docker-credentials.sh`*
+      ->* Uninstall all dependencies + remove keys + remove docker config file
+
+## Script arguments
+
+Use `install-docker-credentials.sh` with flags.
+
+### Flags
+
+* `-u`, `--username` sets the GPG real name that will be used when generating the key.
+* `-e`, `--email` sets the GPG email address attached to the key.
+* `-d`, `--dir` sets the credentials directory where `.gnupg`, `.password-store`, and `.docker` will be created.
+* `-h`, `--help` prints the built-in usage help and exits.
+
+### Default values
+
+These are default value set in the `install-docker-credentials.sh` script. Please change it based on your desired setting.
+
+* Username: `John Doe`
+* Email: `john@example.com`
+* Directory: current folder `.`
+
+#### Examples
+
+```
+# Use the default values
+./install-docker-credentials.sh
+
+# Set a custom name and email
+./install-docker-credentials.sh -u john -e john@example.com
+
+# Set a custom name, email, and credentials directory
+./install-docker-credentials.sh -u "John Doe" -e john@example.com -d /home/john/Desktop
+```
+
+## Usage
+
+```
+# Install & configure docker-credential-helper
+# By default
+chmod +x install-docker-credentials.sh
+./install-docker-credentials.sh
+
+# Verify + check status
+chmod +x check-docker-keys.sh
+./check-docker0keys.sh
+
+# Cleanup / Remove config
+chmod +x cleanup-dockr-credentials.sh
+./cleanup-docker-credentials.sh
+
+```
