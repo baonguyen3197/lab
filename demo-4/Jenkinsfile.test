@@ -1,0 +1,45 @@
+def commonWhenCondition() {
+  return true
+}
+
+pipeline {
+  agent any
+
+  parameters {
+    choice(
+      name: 'TASKS',
+      choices: ['Transfer_Groups_Projects', 'Other'],
+      description: 'Select the pipeline task to simulate'
+    )
+    string(name: 'TYPE', defaultValue: 'group', description: 'Transfer type')
+    string(name: 'ORG_NAME', defaultValue: 'hello; ls /', description: 'Organization name')
+    string(name: 'PROJECT_OR_GROUP_NAME', defaultValue: 'source-group', description: 'Project or group name')
+    string(name: 'TARGET_GROUP_NAME', defaultValue: 'target-group', description: 'Target group name')
+  }
+
+  stages {
+    stage('Transfer Groups Projects - Correct Interpolation') {
+      when {
+        expression { params.TASKS == 'Transfer_Groups_Projects' && commonWhenCondition() }
+      }
+      steps {
+        withCredentials([string(credentialsId: 'GITLAB_API', variable: 'GITLAB_TOKEN')]) {
+          sh '''
+            echo "$GITLAB_TOKEN" "$TYPE" "$ORG_NAME" "$PROJECT_OR_GROUP_NAME" "$TARGET_GROUP_NAME"
+          '''
+        }
+      }
+    }
+
+    stage('Transfer Groups Projects - Incorrect Interpolation') {
+      when {
+        expression { params.TASKS == 'Transfer_Groups_Projects' && commonWhenCondition() }
+      }
+      steps {
+        withCredentials([string(credentialsId: 'GITLAB_API', variable: 'GITLAB_TOKEN')]) {
+          sh "echo '${GITLAB_TOKEN}' '${params.TYPE}' '${params.ORG_NAME}' '${params.PROJECT_OR_GROUP_NAME}' '${params.TARGET_GROUP_NAME}'"
+        }
+      }
+    }
+  }
+}

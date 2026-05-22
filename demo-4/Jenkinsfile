@@ -1,0 +1,29 @@
+pipeline {
+  agent any
+
+  parameters {
+    string(name: 'STATEMENT', defaultValue: 'hello; ls /', description: 'What should I say?')
+  }
+
+  stages {
+    stage('Example 1') {
+      steps {
+        /* WRONG! */
+        sh("echo This is wrong")
+        sh("echo ${STATEMENT}")
+        /* CORRECT */
+        sh('echo This is correct')
+        sh('echo ${STATEMENT}')
+      }
+    }
+
+    stage('Example 2') {
+      steps {
+        sh '''
+            echo "This is also correct"
+            echo "$STATEMENT"
+        '''
+      }
+    }
+  }
+}
